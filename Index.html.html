@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="sv"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0d1727"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Passbit Pro">
+<title>Passbit Pro – Sinus & passbitar</title>
+<style>
+:root{color-scheme:dark;--bg:#0d1727;--panel:#19283d;--muted:#a5b6c9;--line:#30445b;--green:#70e2ac;--blue:#83baff}
+*{box-sizing:border-box}body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:#f4f7fb;margin:0;padding:env(safe-area-inset-top) 16px 35px}
+main{max-width:640px;margin:auto}header{padding:28px 2px 15px}h1{font-size:29px;margin:0 0 5px}header p,.hint{color:var(--muted);font-size:13px;line-height:1.5}
+.tabs{display:flex;gap:6px;background:#111f30;border-radius:13px;padding:5px;margin:12px 0 18px}
+.tabs button{flex:1;background:transparent;border:0;color:#afbed0;padding:13px 5px;border-radius:10px;font-weight:700;font-size:14px}
+.tabs button.active{background:#315478;color:white}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:17px;margin-bottom:15px}
+h2{font-size:17px;margin:0 0 16px}label{display:block;color:#b8c9d9;font-size:13px;margin:13px 0 6px}
+input,textarea,select{width:100%;border:1px solid #45617e;background:#0e1c2e;border-radius:11px;color:white;padding:13px;font-size:18px;outline:none}
+textarea{font-size:13px;line-height:1.5;min-height:140px;font-family:ui-monospace,monospace}
+input:focus,textarea:focus{border-color:var(--blue)}input[type=range]{padding:0;border:0;background:transparent;accent-color:#70e2ac;height:30px;cursor:pointer}.rangehead{display:flex;justify-content:space-between;align-items:center;margin-top:12px}.rangehead label{margin:0}.rangehead output{color:var(--green);font-weight:800;font-variant-numeric:tabular-nums}.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.btn{border:0;border-radius:11px;background:#315478;color:white;padding:12px 14px;font-size:14px;font-weight:700;cursor:pointer}
+.btn.primary{background:#70e2ac;color:#092419}.btn.outline{background:transparent;border:1px solid #49647e;color:#c8d8e9}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}
+.result{background:#102a30;border:1px solid #295d56;padding:14px;border-radius:13px;margin-top:13px}
+.result small{display:block;color:#9bcab9;margin-bottom:4px}.big{font-size:29px;font-weight:800;color:var(--green);font-variant-numeric:tabular-nums}
+.metric{background:#101f33;border-radius:12px;padding:12px}.metric strong{display:block;font-size:21px;margin-top:5px;color:var(--blue)}
+.note{color:var(--muted);font-size:13px;line-height:1.55}.error{color:#ffb0a8}
+.block{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;border-radius:9px;background:#244259;margin:6px 0;font-variant-numeric:tabular-nums}
+.block strong{font-size:19px}.hidden{display:none}svg{width:100%;height:auto;display:block}
+footer{text-align:center;color:#8297ab;font-size:12px;padding:12px 0 30px}
+</style></head><body><main>
+<header><h1>⚙️ Passbit Pro</h1><p>Sinuslinjal, lutning och passbitskombinationer – fungerar offline.</p></header>
+<div class="tabs"><button class="active" data-tab="sin">Sinus / TAN</button><button data-tab="blocks">Passbitar</button><button data-tab="stock">Mitt set</button></div>
+<section id="sin">
+<div class="panel"><h2>Beräkna vinkel och höjd</h2>
+<div class="rangehead"><label for="length">Sinuslinjalens centrumavstånd (mm)</label><output id="lengthLabel">100 mm</output></div><input id="lengthSlider" aria-label="Längdreglage" type="range" min="50" max="300" step="1" value="100"><input id="length" type="text" inputmode="decimal" value="100"><p class="hint">Dra reglaget eller skriv in exakt längd.</p>
+<div class="rangehead"><label for="angle">Vinkel (grader)</label><output id="angleLabel">10°</output></div><input id="angleSlider" aria-label="Vinkelreglage" type="range" min="0" max="45" step="0.1" value="10"><input id="angle" type="text" inputmode="decimal" value="10"><p class="hint">Reglage 0–45° i steg om 0,1°. Skriv in för högre precision.</p>
+<div class="actions"><button class="btn outline" data-angle="5">5°</button><button class="btn outline" data-angle="10">10°</button><button class="btn outline" data-angle="15">15°</button><button class="btn outline" data-angle="20">20°</button><button class="btn outline" data-angle="30">30°</button></div>
+<div id="sinResults"></div></div>
+<div class="panel"><h2>Räkna baklänges</h2><label for="knownHeight">Känd passbitshöjd (mm)</label><input id="knownHeight" type="text" inputmode="decimal" value="17,365">
+<div class="actions"><button id="reverse" class="btn primary">Beräkna vinkel</button></div><div id="reverseResult" class="note"></div></div>
+</section>
+<section id="blocks" class="hidden">
+<div class="panel"><h2>Bygg en passbitshöjd</h2><label for="target">Önskad höjd (mm)</label><input id="target" type="text" inputmode="decimal" value="8,716">
+<div class="actions"><button id="calcBlocks" class="btn primary">Hitta passbitar</button><button id="useSin" class="btn outline">Hämta från sinus</button></div>
+<div id="blockResults"></div></div>
+<div class="panel"><p class="note">Visar flera exakta kombinationer, med de som använder minst antal passbitar först (högst fyra). Varje fysisk passbit används högst en gång. Beräkningen använder 0,001 mm upplösning; värden med finare upplösning avrundas och markeras.</p></div>
+</section>
+<section id="stock" class="hidden">
+<div class="panel"><h2>Dina tillgängliga passbitar</h2><p class="note">Förvalt är ett vanligt metriskt 87-delars set. Kontrollera mot ditt eget set. Skriv en passbit per rad, eller separera med semikolon. Decimalcomma fungerar.</p>
+<textarea id="inventory" spellcheck="false"></textarea>
+<div class="actions"><button class="btn primary" id="saveStock">Spara set</button><button class="btn outline" id="resetStock">Återställ 87-delars</button></div>
+<p id="stockStatus" class="note"></p></div></section>
+<footer>Beräkningar är teoretiska. Kontrollera passbitar, toleranser och mätuppställning före användning.</footer>
+</main>
+<script>
+const $=id=>document.getElementById(id);
+const number=s=>Number(String(s).trim().replace(',','.'));
+const valid=s=>String(s).trim()!=='' && Number.isFinite(number(s));
+const f=(n,d=3)=>n.toLocaleString('sv-SE',{minimumFractionDigits:d,maximumFractionDigits:d});
+const defaultSet=()=>{
+ const a=[];for(let i=1;i<=9;i++)a.push(1+i/1000);
+ for(let i=1;i<=49;i++)a.push(1+i/100);
+ for(let i=1;i<=19;i++)a.push(i/2);
+ for(let i=1;i<=10;i++)a.push(i*10);
+ return a;
+};
+const stored=()=>{try{return localStorage.getItem('passbit-inventory')}catch(e){return null}};
+const persist=s=>{try{localStorage.setItem('passbit-inventory',s)}catch(e){}};
+$('inventory').value=stored()??defaultSet().map(x=>f(x,3)).join('\n');
+function parseStock(){
+ const pieces=$('inventory').value.split(/[;\n]+/).map(s=>s.trim()).filter(Boolean);
+ if(!pieces.length||pieces.some(s=>!valid(s)||number(s)<=0||Math.abs(number(s)*1000-Math.round(number(s)*1000))>1e-7))throw Error('Setet måste innehålla positiva mått i steg om 0,001 mm.');
+ return pieces.map(number);
+}
+function syncSliders(){for(const id of ["angle","length"]){const v=number($(id).value),r=$(id+"Slider");if(Number.isFinite(v))r.value=Math.max(Number(r.min),Math.min(Number(r.max),v));$(id+"Label").textContent=(valid($(id).value)?$(id).value:"–")+(id==="angle"?"°":" mm")}}
+function sinCalc(){
+ syncSliders();
+ const l=number($('length').value),a=number($('angle').value);
+ if(!valid($('length').value)||!valid($('angle').value)||l<=0||a<0||a>=90){$('sinResults').innerHTML='<p class="error">Ange en positiv längd och en vinkel från 0° till under 90°.</p>';return}
+ const rad=a*Math.PI/180,s=l*Math.sin(rad),t=l*Math.tan(rad);
+ $('sinResults').innerHTML=`<div class="result"><small>Passbitshöjd • SIN</small><div class="big">${f(s)} mm</div><button class="btn outline" id="sendBlocks" style="margin-top:10px">Bygg med passbitar →</button></div>
+ <div class="row" style="margin-top:12px"><div class="metric"><small>Höjd • TAN</small><strong>${f(t)} mm</strong></div><div class="metric"><small>Lutning</small><strong>${f(100*Math.tan(rad),2)} %</strong></div></div>
+ <p class="note">SIN använder ${f(l)} mm längs sinuslinjalen. TAN använder ${f(l)} mm horisontellt.</p>`;
+ $('sendBlocks').onclick=()=>{setTab('blocks');$('target').value=f(s);findBlocks()};
+}
+function setTab(id){document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('active',b.dataset.tab===id));['sin','blocks','stock'].forEach(x=>$(x).classList.toggle('hidden',x!==id))}
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
+document.querySelectorAll('[data-angle]').forEach(b=>b.onclick=()=>{$('angle').value=b.dataset.angle;sinCalc()});
+['angle','length'].forEach(id=>$(id+'Slider').addEventListener('input',()=>{$(id).value=$(id+'Slider').value.replace('.',',');sinCalc()}));
+['angle','length'].forEach(id=>$(id).addEventListener('input',sinCalc));
+$('reverse').onclick=()=>{
+ const h=number($('knownHeight').value),l=number($('length').value);
+ $('reverseResult').innerHTML=(!valid($('knownHeight').value)||!valid($('length').value)||l<=0||h<0||h>l)?'<span class="error">Höjden måste vara mellan 0 och centrumavståndet.</span>':`Vinkel: <strong>${f(Math.asin(h/l)*180/Math.PI,5)}°</strong>`;
+};
+function findCombinations(values,target,limit=12){
+ // Values are integer micrometres; indexes distinguish physically separate pieces.
+ const n=values.length,results=[],seen=new Set(),pairs=new Map();
+ const add=indices=>{
+   const vals=indices.map(i=>values[i]).sort((a,b)=>b-a);
+   const key=vals.join(',');
+   if(!seen.has(key)){seen.add(key);results.push(vals)}
+ };
+ for(let i=0;i<n;i++)if(values[i]===target)add([i]);
+ if(results.length>=limit)return results.slice(0,limit);
+ for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+   const sum=values[i]+values[j];
+   if(sum===target)add([i,j]);
+   if(sum<target){
+     if(!pairs.has(sum))pairs.set(sum,[]);
+     pairs.get(sum).push([i,j]);
+   }
+ }
+ if(results.length>=limit)return results.slice(0,limit);
+ for(let i=0;i<n;i++){
+   const matches=pairs.get(target-values[i])||[];
+   for(const [j,k] of matches)if(i!==j&&i!==k)add([i,j,k]);
+ }
+ if(results.length>=limit)return results.slice(0,limit);
+ // Pair-pair combinations: distinct physical blocks only.
+ for(const [sum,items] of pairs){
+   const other=pairs.get(target-sum);
+   if(!other)continue;
+   for(const [i,j] of items)for(const [k,m] of other){
+     if(i!==k&&i!==m&&j!==k&&j!==m)add([i,j,k,m]);
+     if(results.length>=limit)break;
+   }
+   if(results.length>=limit)break;
+ }
+ results.sort((a,b)=>a.length-b.length||b[0]-a[0]);
+ return results.slice(0,limit);
+}
+function findBlocks(){
+ const box=$('blockResults'),raw=$('target').value,t=number(raw);
+ if(!valid(raw)||t<=0){box.innerHTML='<p class="error">Ange en positiv målhöjd.</p>';return}
+ let stock;try{stock=parseStock()}catch(e){box.innerHTML='<p class="error">'+e.message+'</p>';return}
+ const target=Math.round(t*1000),rounded=Math.abs(t*1000-target)>1e-7;
+ const ints=stock.map(v=>Math.round(v*1000)),solutions=findCombinations(ints,target,12);
+ if(!solutions.length){box.innerHTML=`<p class="error">Ingen exakt kombination med högst fyra passbitar hittades för ${f(target/1000)} mm i ditt set.</p><p class="note">Prova att uppdatera setet under ”Mitt set”.</p>`;return}
+ box.innerHTML=`<div class="result"><small>Målhöjd • ${solutions.length} kombination${solutions.length===1?'':'er'} hittade</small><div class="big">${f(target/1000)} mm</div></div>
+ <h2 style="margin-top:18px">Välj kombination</h2>
+ ${solutions.map((selected,i)=>`<details ${i===0?'open':''} style="border:1px solid #38546d;border-radius:12px;margin:9px 0;padding:11px">
+ <summary style="cursor:pointer;font-weight:700">Alternativ ${i+1} · ${selected.length} passbit${selected.length===1?'':'ar'}</summary>
+ ${selected.map(v=>`<div class="block"><span>Passbit</span><strong>${f(v/1000)} mm</strong></div>`).join('')}
+ <button class="btn outline copy-combo" data-copy="${selected.map(v=>f(v/1000)).join(' + ')} = ${f(target/1000)} mm">Kopiera kombination</button></details>`).join('')}
+ ${rounded?'<p class="error">Obs: målvärdet avrundades till närmaste 0,001 mm.</p>':''}`;
+ box.querySelectorAll('.copy-combo').forEach(b=>b.onclick=()=>{navigator.clipboard?.writeText(b.dataset.copy).then(()=>{b.textContent='Kopierat!' }).catch(()=>{b.textContent='Kopiera manuellt'})});
+}
+$('calcBlocks').onclick=findBlocks;
+$('useSin').onclick=()=>{const l=number($('length').value),a=number($('angle').value);if(l>0&&a>=0&&a<90){$('target').value=f(l*Math.sin(a*Math.PI/180));findBlocks()}};
+$('saveStock').onclick=()=>{try{const arr=parseStock();persist($('inventory').value);$('stockStatus').textContent=`Sparat: ${arr.length} passbitar.`}catch(e){$('stockStatus').textContent=e.message}};
+$('resetStock').onclick=()=>{$('inventory').value=defaultSet().map(x=>f(x,3)).join('\n');persist($('inventory').value);$('stockStatus').textContent='87-delars standardset återställt.'};
+sinCalc();findBlocks();
+</script></body></html>
